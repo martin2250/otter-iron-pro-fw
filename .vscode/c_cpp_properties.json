@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "name": "STM32",
+            "includePath": [
+                "./libopencm3/include"
+            ],
+            "defines": ["STM32F0", "__ARM_ARCH_6M__"],
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++14"
+        }
+    ],
+    "version": 4
+}
