@@ -46,7 +46,8 @@ struct {
     .popup = {
         .open = true,
         .text = "OtterIron Pro",
-        .timeout = 1200,
+        .timeout = 1200000,
+        // .timeout = 1200,
     },
     .status = {
         .tip_connected = true,
@@ -86,6 +87,7 @@ void menu_draw(void) {
                 // todo: invert colors
                 snprintf(buffer, sizeof buffer, "set temp <%d>", ui.selected_info.temp_set);
                 disp_string_line(0, 1, buffer);
+                disp_invert_line(1);
             } else {
                 disp_string_line(0, 1, "set temp");
             }
@@ -98,6 +100,7 @@ void menu_draw(void) {
         case MENU_STATE_STANDBY: {
             if (ui.menu_selected) {
                 disp_string_line(0, 1, "standby mode on");
+                disp_invert_line(1);
             } else {
                 disp_string_line(0, 1, "standby mode off");
             }
@@ -106,6 +109,7 @@ void menu_draw(void) {
         case MENU_STATE_DFU: {
             if (ui.menu_selected) {
                 disp_string_line(0, 1, "yes (-) / no (+)");
+                disp_invert_line(1);
             } else {
                 disp_string_line(0, 1, "enter DFU mode");
             }
@@ -120,8 +124,20 @@ void menu_draw(void) {
 
     if (ui.popup.open) {
         // todo: add fancy box around text
-        uint16_t offset = OLED_WIDTH / 2 - strlen(ui.popup.text) * FONT_WIDTH / 2;
-        disp_string_y(offset, 4, ui.popup.text);
+        uint8_t text_width = strlen(ui.popup.text) * FONT_WIDTH;
+        uint8_t text_offset = OLED_WIDTH / 2 - text_width / 2;
+
+        disp_line_h(text_offset - 2, OLED_WIDTH - text_offset + 1, 2, 1);
+        disp_line_h(text_offset - 2, OLED_WIDTH - text_offset + 1, 3, 0);
+        disp_line_h(text_offset - 2, OLED_WIDTH - text_offset + 1, 12, 0);
+        disp_line_h(text_offset - 2, OLED_WIDTH - text_offset + 1, 13, 1);
+
+        disp_line_v(text_offset - 2, 2, 13, 1);
+        disp_line_v(text_offset - 1, 3, 12, 0);
+        disp_line_v(OLED_WIDTH - text_offset, 3, 12, 0);
+        disp_line_v(OLED_WIDTH - text_offset + 1, 2, 13, 1);
+
+        disp_string_y(text_offset, 4, ui.popup.text);
     }
 
     disp_refresh();
@@ -130,6 +146,11 @@ void menu_draw(void) {
 void menu_button(bool up, bool down) {
     // no buttons pressed, this shouldn't happen
     if (!up && !down) {
+        return;
+    }
+    if (ui.popup.open) {
+        ui.popup.open = false;
+        ui.changed = true;
         return;
     }
     bool both = up & down;
@@ -152,6 +173,7 @@ void menu_button(bool up, bool down) {
                 if (both) {
                     ui.status.set_temp = ui.selected_info.temp_set;
                     ui.menu_selected = false;
+                    ui.changed = true;
                 } else if (up && (ui.selected_info.temp_set + SETTING_TEMP_STEP) <= SETTING_TEMP_MAX) {
                     ui.selected_info.temp_set += SETTING_TEMP_STEP;
                     ui.changed = true;

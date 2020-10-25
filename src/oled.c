@@ -103,7 +103,7 @@ void disp_refresh(void) {
 }
 
 void disp_pixel(uint8_t x, uint8_t y, uint8_t color) {
-	if (x > 95 || y > 15) {
+	if (x >= OLED_WIDTH || y >= OLED_HEIGHT) {
 		return;
 	}
 	uint8_t *addr = disp_buffer.buffer + x + OLED_WIDTH * (y/8);
@@ -111,6 +111,34 @@ void disp_pixel(uint8_t x, uint8_t y, uint8_t color) {
 		*addr |=  (1 << y % 8);
 	} else if (color == 0){
 		*addr &= ~(1 << y % 8);
+	}
+}
+
+void disp_line_h(uint8_t x1, uint8_t x2, uint8_t y, uint8_t color) {
+	if (x1 >= OLED_WIDTH || x2 >= OLED_WIDTH || y >= OLED_HEIGHT) {
+		return;
+	}
+	for (uint8_t x = x1; x < x2; x++) {
+		uint8_t *addr = disp_buffer.buffer + x + OLED_WIDTH * (y/8);
+		if(color == 1){
+			*addr |=  (1 << y % 8);
+		} else if (color == 0){
+			*addr &= ~(1 << y % 8);
+		}
+	}
+}
+
+void disp_line_v(uint8_t x, uint8_t y1, uint8_t y2, uint8_t color) {
+	if (x >= OLED_WIDTH || y1 >= OLED_HEIGHT || y2 >= OLED_HEIGHT) {
+		return;
+	}
+	for (uint8_t y = y1; y < y2; y++) {
+		uint8_t *addr = disp_buffer.buffer + x + OLED_WIDTH * (y/8);
+		if(color == 1){
+			*addr |=  (1 << y % 8);
+		} else if (color == 0){
+			*addr &= ~(1 << y % 8);
+		}
 	}
 }
 
@@ -155,4 +183,13 @@ void disp_string_line(uint8_t x, uint8_t line, const char* str) {
         disp_char_line(*str++, x, line);
         x += FONT_WIDTH;
     }
+}
+
+void disp_invert_line(uint8_t line) {
+	if (line > 1) {
+		return;
+	}
+    for (uint8_t x = 0; x < OLED_WIDTH; x++) {
+		disp_buffer.buffer[line * OLED_WIDTH + x] ^= 0xff;
+	}
 }
